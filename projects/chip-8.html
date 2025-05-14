@@ -1,0 +1,128 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+
+<head> 
+	<meta charset="UTF-8"> 
+	<meta name="viewport" content= 
+		"width=device-width, initial-scale=1.0"> 
+    <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="./media.css" />
+	<title>Project</title> 
+</head> 
+
+<body>
+    <div style="border-bottom: 3px solid gainsboro;">
+        <nav id="desktop-nav">
+            <div class="logo"><a href="/" style="text-decoration: none;">Rajesh Shah</a></div>
+            <ul class="nav-links">
+                <li><a href="../#about" style="text-decoration: none;">About</a></li>
+                <li><a href="../#projects" style="text-decoration: none;">Projects</a></li>
+                <li><a href="../#blogs" style="text-decoration: none;">Blogs</a></li>
+                <li><a href="../#contact" style="text-decoration: none;">Contact</a></li>
+            </ul>
+        </nav>
+        <nav id="hamburger-nav">
+            <div class="logo">Rajesh Shah</div>
+            <div class="hamburger-menu">
+                <div class="hamburger-icon" onclick="toggleMenu()">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <div class="menu-links">
+                    <li><a href="../#about" onclick="toggleMenu()">About</a></li>
+                    <li><a href="../#projects" onclick="toggleMenu()">Projects</a></li>
+                    <li><a href="../#blogs" onclick="toggleMenu()">Blogs</a></li>
+                    <li><a href="../#contact" onclick="toggleMenu()">Contact</a></li>
+                </div>
+            </div>
+        </nav>
+    </div>
+    <!--<div id="project_container" style="margin-left: 2%; margin-top: 0.8%; align-items: center; display: flex; flex-direction: column">-->  
+    <div class="project-container">
+      <div class="project-title"><p>CHIP-8 EMULATOR</p></div>
+        <!--<p style="font-family:Georgia, 'Times New Roman', Times, serif ;font-size: large; margin: 1%;">February 7, 2025</p>-->
+        <p class= "date-container">February 7, 2025</p>
+        <!--<div class="project_pic_container" style="width: 53%; display: flex; justify-content: center;">-->
+        <div class="project-pic-container">
+          <img
+                src="/assets/projects/chip-8/chip-8-demo.gif"
+                alt="Emulator IMG"
+            />
+        </div>
+        <div class="project-details-container">
+            <p style="font-size: larger;">
+                Machine Description
+            </p>
+            <p>
+                CHIP-8 is an interpreted programming language, developed on an 1802 microprocessor. CHIP-8 was designed to be
+                easy to program for. It was intended as a simpler way to make small programs and games for the computer.
+            </p>
+            Memory
+            <p>
+                Chip-8 has 4096 (0x1000) memory locations, all of which are 8 bits (a byte) which is where the term CHIP-8
+                originated. However, the CHIP-8 interpreter itself occupies the first 512 bytes of the memory space on these
+                machines. For this reason, most programs written for the original system begin at memory location 512 (0x200)
+                and do not access any of the memory below the location 512 (0x200). The uppermost 256 bytes (0xF00-0xFFF) are
+                reserved for display refresh, and the 96 bytes below that (0xEA0-0xEFF) were reserved for the call stack,
+                internal use, and other variables.
+            </p>
+            Registers
+            <p>
+                CHIP-8 has 16 8-bit data registers named V0 to VF. The VF register doubles as a flag for some instructions;
+                thus, it should be avoided. In an addition operation, VF is the carry flag, while in subtraction, it is the "no
+                borrow" flag. In the draw instruction VF is set upon pixel collision.
+                The address register, which is named I, is 12 bits wide and is used with several opcodes that involve memory
+                operations. Program Counter (PC) holds the address of next instruction to be executed.
+            </p>
+            The stack
+            <p>
+                The stack is only used to store return addresses when subroutines are called. The original RCA 1802 version
+                allocated 48 bytes for up to 12 levels of nesting.
+            </p>
+            Timers
+            <p>
+                CHIP-8 has two timers. They both count down at 60 hertz, until they reach 0.
+                - Delay timer: This timer is intended to be used for timing the events of games. Its value can be set and read.
+                - Sound timer: This timer is used for sound effects. When its value is nonzero, a beeping sound is made. Its
+                value can only be set.
+            </p>
+            Input
+            <p>
+                Input is done with a hex keyboard that has 16 keys ranging 0 to F. The '8', '4', '6', and '2' keys are typically
+                used for directional input. Three opcodes are used to detect input. One skips an instruction if a specific key
+                is pressed, while another does the same if a specific key is not pressed. The third waits for a key press, and
+                then stores it in one of the data registers.
+            </p>
+            Graphics and sound
+            <p>
+                Original CHIP-8 display resolution is 64×32 pixels, and color is monochrome. Graphics are drawn to the screen
+                solely by drawing sprites, which are 8 pixels wide and may be from 1 to 15 pixels in height. Sprite pixels are
+                XOR'd with corresponding screen pixels. In other words, sprite pixels that are set flip the color of the
+                corresponding screen pixel, while unset sprite pixels do nothing. The carry flag (VF) is set to 1 if any screen
+                pixels are flipped from set to unset when a sprite is drawn and set to 0 otherwise. This is used for collision
+                detection.
+                As previously described, a beeping sound is played when the value of the sound timer is nonzero.
+            </p>
+            Opcode
+            <p>
+                CHIP-8 has 35 opcodes, which are all two bytes long and stored big-endian.
+            </p>
+        </div>
+    </div>
+    <footer>
+        <nav>
+          <div class="nav-links-container">
+            <ul class="nav-links">
+              <li><a href="../#about">About</a></li>
+              <li><a href="../#projects">Projects</a></li>
+              <li><a href="../#blogs">Blogs</a></li>
+              <li><a href="../#contact">Contact</a></li>
+            </ul>
+          </div>
+        </nav>
+        <p>Copyright &#169; 2025 Rajesh Shah. All Rights Reserved.</p>
+      </footer>
+</body>
+
+</html>
