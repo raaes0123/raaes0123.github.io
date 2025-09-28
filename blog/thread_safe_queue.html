@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="../media.css" />
+    <title>Thread-safe Queue</title>
+</head>
+
+<body>
+    <div class="header">
+        <div>
+            <a href="../index.html">Rajesh Shah</a>
+        </div>
+        <div>
+            <a href="../aboutme.html">About Me</a>
+        </div>
+    </div>
+    <hr>
+    <!--<div id="project_container" style="margin-left: 2%; margin-top: 0.8%; align-items: center; display: flex; flex-direction: column">-->
+    <div class="project-container">
+        <div id="project-title">
+            <p>Thread-safe Queue</p>
+        </div>
+        <p>
+            Implementation of thread safe queue using condition variables mutex and lock
+        </p>
+        <p>
+            <ul>
+                <li>Sleeps on empty</li>
+                <li>If queue is full go to sleep</li>
+                <li>Similarly when dequeing first acquire the lock using condition_variable to go to sleep if busy</li>
+                <li>Otherwise check if queue is empty and if not take out an element and release the lock and then</li>
+                <li>Notify any one thread sleeping on full lock</li>
+            </ul>
+        </p>
+<pre>
+
+    #include &ltiostream&gt
+    #include &ltqueue&gt
+    #include &ltthread&gt
+    #include &ltmutex&gt
+    #include &ltcondition_variable&gt
+    #define THREAD 1000
+    
+    using namespace std;
+    
+    template<typename T>
+    class Thread_Safe_Queue{
+        private:
+            queue<T> q;
+            int capacity;
+            mutex m;
+            condition_variable cond_not_full,cond_not_empty;
+        public:
+            // Constructor with parameter
+            Thread_Safe_Queue(int size){
+                capacity = size;
+            }
+            void push(T element){
+                // When pushing to a queue buffer first acquire a lock
+                unique_lock<mutex> lock(m);
+                // Using condition_variable to go to sleep if full
+                while(q.size() == capacity){
+                    cond_not_full.wait(lock);
+                }
+                // If not push to the queue and release the lock notify one ie thread sleeping on empty 
+                q.push(element);
+                lock.unlock();
+                cond_not_empty.notify_one();
+            }
+            T pop(){
+                // When popping from a queue buffer first acquire a lock
+                unique_lock<mutex> lock(m);
+                // Using condition_variable to go to sleep if empty
+                while(q.size() == 0){
+                    cond_not_empty.wait(lock);
+                }
+                // If not pop from the queue and release the lock notify one ie thread sleeping on full 
+                T element = q.front();
+                q.pop();
+                lock.unlock();
+                cond_not_full.notify_one();
+                return element;
+            }
+            int size(){
+                return q.size();
+            }
+    };
+    
+    // Create a queue of capacity = 32
+    Thread_Safe_Queue<int> tq(32);
+    
+    template<typename T>
+    void producer_function(){
+        // Producer produces 1000 items 1 every ms
+        for(int i = 0 ; i < 1000 ; i++){
+            // Wait for 1 ms
+            //this_thread::sleep_for(chrono::milliseconds(1));
+            tq.push(i);
+        }
+        tq.push(-1);        // Indicates last push to the queue
+        cout << "Producer is done producing.\n";
+    }
+    template<typename T>
+    void consumer_function(){
+        // Consumer consumes items 1 every ms till the last element ie -1
+        int consumer_count = 0;
+        while(true){
+            // Wait for 1 ms
+            //this_thread::sleep_for(chrono::milliseconds(1));
+            T element = tq.pop();
+            consumer_count++;
+            if(element == -1){
+                // Put -1 for other threads to check last element in the queue
+                tq.push(-1);
+                cout << "Consumer " << this_thread::get_id() << " consumed " << consumer_count << " elements from the queue.\n";
+                return;
+            }
+        }
+    }
+    
+    int main(){
+        // Create 1 producer thread and 2 consumer threads
+        thread producer(producer_function<int>);
+        thread consumer_1(consumer_function<int>);
+        thread consumer_2(consumer_function<int>);
+        producer.join();
+        consumer_1.join();
+        consumer_2.join();
+        return 0;
+    }
+
+</pre>
+    </div>
+</body>
+</html>

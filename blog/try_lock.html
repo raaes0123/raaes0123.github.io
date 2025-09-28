@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="../media.css" />
+    <title>Try Lock</title>
+</head>
+
+<body>
+    <div class="header">
+        <div>
+            <a href="../index.html">Rajesh Shah</a>
+        </div>
+        <div>
+            <a href="../aboutme.html">About Me</a>
+        </div>
+    </div>
+    <hr>
+    <!--<div id="project_container" style="margin-left: 2%; margin-top: 0.8%; align-items: center; display: flex; flex-direction: column">-->
+    <div class="project-container">
+        <div id="project-title">
+            <p>Try Lock</p>
+        </div>
+        <p>
+            Two shoppers are adding items into a shared notepad.
+            Use try_lock which is a non-blocking version of mutual exclusion
+            which means that while thread 1 is using a shared resource thread 2 doesn't
+            have to busy wait but can go do other things
+        </p>
+        <p>
+            Thread 1 and 2 look for items to add. If a thread finds an item, it tries to get the lock and
+            write the item to the notepad. If it doesn't get the lock goes to look for other items to add
+            Program ends when total item added to the notepad is 20
+        </p>
+<pre>
+
+    #include &ltiostream&gt
+    #include &ltthread&gt
+    #include &ltmutex&gt
+    #include &ltchrono&gt
+    using namespace std;
+
+    unsigned int total_count = 20;
+    unsigned int count_ = 0;
+    mutex pencil;
+
+    void addItem()
+    {
+        int items_to_add = 0;
+        while (count_ < total_count)
+        {
+            // If there are items to add then try to get the lock and then update the notepad
+            if (items_to_add && pencil.try_lock())
+            {
+                // Simulate adding of items
+                count_ += items_to_add;
+                this_thread::sleep_for(chrono::milliseconds(300));
+                cout << this_thread::get_id() << " added " << items_to_add << " items to the notepad.\n";
+                items_to_add = 0;
+                // Unlock
+                pencil.unlock();
+            }
+            // Otherwise look for the items
+            else
+            {
+                // Simulate looking for items
+                this_thread::sleep_for(chrono::milliseconds(100));
+                items_to_add++;
+                cout << this_thread::get_id() << " found something else to buy.\n";
+            }
+        }
+    }
+
+    int main()
+    {
+        thread t1(addItem), t2(addItem);
+        t1.join(); // Main blocks here until t1 returns
+        t2.join(); // Main blocks here until t2 returns
+    }
+</pre>
+    </div>
+</body>
+</html>

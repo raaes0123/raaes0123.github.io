@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="../media.css" />
+    <title>Queue</title>
+</head>
+
+<body>
+    <div class="header">
+        <div>
+            <a href="../index.html">Rajesh Shah</a>
+        </div>
+        <div>
+            <a href="../aboutme.html">About Me</a>
+        </div>
+    </div>
+    <hr>
+    <!--<div id="project_container" style="margin-left: 2%; margin-top: 0.8%; align-items: center; display: flex; flex-direction: column">-->
+    <div class="project-container">
+        <div id="project-title">
+            <p>Queue</p>
+        </div>
+        <p>
+            C++ Implementation of Queue
+        </p>
+<pre>
+    #include &ltiostream&gt
+
+    class IntQueue{
+        private:
+            int *q;
+            int index;
+            int size_alloted;
+        public:
+            IntQueue();
+            bool isEmpty();
+            int size();
+            void push_back(int n);
+            int pop_front();
+    };
+
+    IntQueue::IntQueue(){
+        q = new int;
+        index = 0;
+        size_alloted = 1;
+    }
+    
+    bool IntQueue::isEmpty(){
+        return index == 0;
+    }
+    
+    int IntQueue::size(){
+        return index;
+    }
+    
+    void IntQueue::push_back(int n){
+        int size = index;
+        // First check if the alloted size is filled up
+        if(size == size_alloted){
+            // Double the size
+            // Store the current in a temp variable
+            int *temp = new int[size];
+            memcpy(temp,q,size*sizeof(int));
+            // Delete previous allocation
+            delete [] q;
+            // Fresh allocation with double the size
+            q = new int[2*size];
+            memcpy(q,temp,size*sizeof(int));
+            // Delete temp allocation
+            delete [] temp;
+            size_alloted *= 2;
+        }
+        q[index++] = n;
+    }
+    
+    int IntQueue::pop_front(){
+        // Make sure the queue is not empty
+        if(isEmpty()){
+            std::cerr << "The queue is empty\n";
+            return -1;
+        }
+        // Get the first item from array
+        int return_val = q[0];
+        // Handle the case when size = 1 (Just decrement by 1)
+        if(index == 1){
+            index--;
+            return return_val;
+        }
+        // Move the items from the queue except the first to the front of the queue
+        memmove(q,q+1,(index-1)*sizeof(int));
+        index--;
+        return return_val;
+    }
+
+    int main(){
+        IntQueue Q;
+        if(Q.isEmpty())
+            cout<<"Queue is empty"<< endl;
+        else
+            cout<< "Queue is not empty"<< endl;
+        cout<<"Pushing 1 to queue"<< endl;
+        Q.push_back(1);
+        cout<<"Pushing 2 to queue"<< endl;
+        Q.push_back(2);
+        cout<<"Pushing 3 to queue"<< endl;
+        Q.push_back(3);
+        cout<<"Queue size: "<< Q.size()<< endl;
+        cout<<"Popping from queue"<< endl;
+        cout<< Q.pop_front()<< endl;
+        cout<<"Popping from queue"<< endl;
+        cout<< Q.pop_front()<< endl;
+        cout<<"Popping from queue"<< endl;
+        cout<< Q.pop_front()<< endl;
+        cout<<"Popping from queue"<< endl;
+        cout<< Q.pop_front()<< endl;
+        return 0;
+    }
+
+</pre>
+    </div>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="../media.css" />
+    <title>Barrier</title>
+</head>
+
+<body>
+    <div class="header">
+        <div>
+            <a href="../index.html">Rajesh Shah</a>
+        </div>
+        <div>
+            <a href="../aboutme.html">About Me</a>
+        </div>
+    </div>
+    <hr>
+    <!--<div id="project_container" style="margin-left: 2%; margin-top: 0.8%; align-items: center; display: flex; flex-direction: column">-->
+    <div class="project-container">
+        <div id="project-title">
+            <p>Barrier</p>
+        </div>
+        <p>
+            Barrier helps to synchronize threads such that all the threads cross the barrier at the same
+            time ie if a thread t1 is early then it waits for the late thread t2.
+
+        </p>
+        <p>
+            In the program below the race condition is eliminated by using barrier that makes the olivia
+            thread to take place before the barron thread
+        </p>
+<pre>
+
+    #include &ltiostream&gt
+    #include &ltthread&gt
+    #include &ltmutex&gt
+    #include &ltchrono&gt
+    #include &ltbarrier&gt
+
+    unsigned int bags_of_chips = 1;
+    std::mutex pencil;
+    std::barrier fist_bump(10);         // Note: use -std=c++20 option while compiling
+
+    void some_work(){
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
+    void barron_thread(){
+        // Do some work
+        some_work();
+        fist_bump.arrive_and_wait();
+        std::scoped_lock<std::mutex> lock(pencil);
+        bags_of_chips *= 2;
+        printf("Barron doubled the bag of chips.\n");
+    }
+
+    void olivia_thread(){
+        // Do some work
+        some_work();
+        {
+            std::scoped_lock<std::mutex> lock(pencil);
+            bags_of_chips += 5;
+        }
+        fist_bump.arrive_and_wait();
+        printf("Olivia added 5 more bags of chips.\n");
+    }
+
+    int main(){
+        std::thread shoppers[10];
+        for(int i = 0 ; i < 10 ; i+=2){
+            shoppers[i] = std::thread(barron_thread);
+            shoppers[i+1] = std::thread(olivia_thread);
+        }
+        for(auto& s:shoppers){
+            s.join();
+        }
+        printf("Total bags of chips: %u\n",bags_of_chips);
+    }
+
+</pre>
+    </div>
+</body>
+</html>

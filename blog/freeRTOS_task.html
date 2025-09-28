@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="../media.css" />
+    <title>FreeRTOS Task</title>
+</head>
+
+<body>
+    <div class="header">
+        <div>
+            <a href="../index.html">Rajesh Shah</a>
+        </div>
+        <div>
+            <a href="../aboutme.html">About Me</a>
+        </div>
+    </div>
+    <hr>
+    <!--<div id="project_container" style="margin-left: 2%; margin-top: 0.8%; align-items: center; display: flex; flex-direction: column">-->
+    <div class="project-container">
+        <div id="project-title">
+            <p>FreeRTOS Task</p>
+        </div>
+<pre>
+    /*
+    FreeRTOS Task example to create a task that toggles LED
+    */
+
+    /* FreeRTOS includes. */
+    #include &ltstddef.h&gt
+    #include &ltFreeRTOS.h&gt
+    #include &lttask.h&gt
+    #include &ltqueue.h&gt
+    #include &lttimers.h&gt
+    #include &ltsemphr.h&gt
+    #include "main.h"
+
+    void vTask1(void *pvParameters)
+    {
+        while (1)
+        {
+            // LED TOGGLE
+            GPIOA_ODR ^= 1 << LED;
+            vTaskDelay(pdMS_TO_TICKS(1000));
+        }
+    }
+
+
+    void vApplicationTickHook(void){
+
+    }
+
+    void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName)
+    {
+        // This function is called if a stack overflow is detected.
+        // You can log, halt the system, blink an LED, etc.
+        //printf("Stack overflow in task: %s\n", pcTaskName);
+        //taskDISABLE_INTERRUPTS();
+        for (;;);  // Stay here to halt the system
+    }
+
+
+    void vApplicationMallocFailedHook(void){
+
+    }
+
+    static void prvSetupHardware(){
+        // Enable GPIOA clock
+        RCC_APB2ENR |= (1 << 2);        // Bit 2 = GPIOAEN
+        
+        GPIOA_CRH &= ~(3 << 4*(8-8));    // Clear MODE2 (PA8) as output 10MHz
+        GPIOA_CRH |=  (1 << 4*(8-8));
+        GPIOA_CRH &= ~(3 << (4*(8-8)+2));     // Clear CNF2 (00) GPIO Push-pull
+
+        GPIOA_ODR |= 1 << LED;                    // LED Off
+    }
+
+
+    void main(void)
+    {
+        // Hardware Setup
+        prvSetupHardware();
+        
+        // Task parameters
+        TaskFunction_t pvTaskCode = vTask1;         // Pointer to the function that implements the task
+        const char * const pcName = "Task1";        // Descriptive name of the task
+        uint16_t usStackDepth = 128;                // Stack size 
+        void *pvParameters = NULL;                  // Parameters passed in to the task
+        UBaseType_t uxPriority = 1;                 // Task priority
+        TaskHandle_t *pxCreatedTask = NULL;         // Task handle for the created task
+        xTaskCreate(pvTaskCode, pcName, usStackDepth, pvParameters, uxPriority, pxCreatedTask);
+
+        vTaskStartScheduler();
+
+        while(1); // Should never reach here
+    }
+
+</pre>
+    </div>
+</body>
+</html>

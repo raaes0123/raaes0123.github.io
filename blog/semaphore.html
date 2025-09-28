@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="../media.css" />
+    <title>Semaphore</title>
+</head>
+
+<body>
+    <div class="header">
+        <div>
+            <a href="../index.html">Rajesh Shah</a>
+        </div>
+        <div>
+            <a href="../aboutme.html">About Me</a>
+        </div>
+    </div>
+    <hr>
+    <!--<div id="project_container" style="margin-left: 2%; margin-top: 0.8%; align-items: center; display: flex; flex-direction: column">-->
+    <div class="project-container">
+        <div id="project-title">
+            <p>Semaphore</p>
+        </div>
+        <p>
+            The example shows the working of semaphore a synchronization primitive that allows multiple threads to access
+            a shared resource at the same time unlike binary semaphore (mutex) that allows just one.
+            It internally has a counter that keeps track of how many times it has been acquired and when the
+            count is 0, threads get blocked
+        </p>
+        <p>
+            In this demonstration 10 phone chargers are competing to acquire 4 charging ports
+        </p>
+<pre>
+    // semaphore.cpp
+    #include &ltiostream&gt
+    #include &ltthread&gt
+    #include "semaphore.h"
+
+    #define PORT 4
+    using namespace std;
+
+    Semaphore charging_port(PORT);
+
+    void chargePhone(){
+        charging_port.down();
+        cout << this_thread::get_id() << " is charging it's phone.\n";
+        this_thread::sleep_for(chrono::milliseconds(100));
+        cout << this_thread::get_id() << " is done.\n";
+        charging_port.up();
+    }
+
+    int main(){
+        thread t[10];
+        for(int i = 0 ; i < 10 ; i++){
+            t[i] = thread(chargePhone);
+        }
+        for(int i = 0 ; i < 10 ; i++){
+            t[i].join();
+        }
+        return 0;
+    }
+
+</pre>
+    </div>
+</body>
+</html>

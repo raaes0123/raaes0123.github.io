@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="../media.css" />
+    <title>FreeRTOS Task</title>
+</head>
+
+<body>
+    <div class="header">
+        <div>
+            <a href="../index.html">Rajesh Shah</a>
+        </div>
+        <div>
+            <a href="../aboutme.html">About Me</a>
+        </div>
+    </div>
+    <hr>
+    <!--<div id="project_container" style="margin-left: 2%; margin-top: 0.8%; align-items: center; display: flex; flex-direction: column">-->
+    <div class="project-container">
+        <div id="project-title">
+            <p>FreeRTOS Task</p>
+        </div>
+<pre>
+    /*
+    Two tasks running at different priorities and are continuously running tasks
+    ie doesn't call vTaskDelay
+    */
+
+    /* FreeRTOS includes. */
+    #include &ltstddef.h&gt
+    #include &ltFreeRTOS.h&gt
+    #include &lttask.h&gt
+    #include &ltqueue.h&gt
+    #include &lttimers.h&gt
+    #include &ltsemphr.h&gt
+    #include "main.h"
+
+    static void vPrintString(const char *str){
+        uint8_t i = 0;
+        while(str[i] != '\0'){
+            USART_DR = str[i];
+            while(!(USART_SR &(1 << TXE)));
+            i++;
+        }
+    }
+
+    void vTask(void *pvParameters)
+    {
+        const char *pcTaskStr = (char *)pvParameters;
+        while (1)
+        {
+            vPrintString(pcTaskStr);
+            GPIOA_ODR  ^= 1 << LED;
+            // vTaskDelay(pdMS_TO_TICKS(1000));
+            delay();            // This delay is different from vTaskDelay as it doesn't let the task to block
+        }
+    }
+
+
+    void vApplicationTickHook(void){
+
+    }
+
+    void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName)
+    {
+        // This function is called if a stack overflow is detected.
+        // You can log, halt the system, blink an LED, etc.
+        //printf("Stack overflow in task: %s\n", pcTaskName);
+        //taskDISABLE_INTERRUPTS();
+        for (;;);  // Stay here to halt the system
+    }
+
+
+    void vApplicationMallocFailedHook(void){
+
+    }
+
+    static void prvSetupHardware(){
+        // 1. Enable GPIOA clock
+        RCC_APB2ENR |= (1 << 2);  // Bit 2 = GPIOAEN
+        // 2. Set PA9 and PA10 as TXD and RXD respectively
+        GPIOA_CRH &= ~(3 << 4*(10-8));     // Clear MODE2 RXD(PA10) as input
+
+        GPIOA_CRH &= ~(3 << 4*(9-8));    // Clear MODE2 TXD(PA9) as output 10MHz
+        GPIOA_CRH |=  (1 << 4*(9-8));  
+
+        GPIOA_CRH &= ~(3 << 4*(8-8));    // Clear MODE2 (PA8) as output 10MHz
+        GPIOA_CRH |=  (1 << 4*(8-8));       
+
+        // CNF (Floating input)
+        GPIOA_CRH &= ~(3 << (4*(10-8)+2));     // Clear CNF2 (00)
+        GPIOA_CRH |= 1 << (4*(10-8)+2);        // CNF2 (01)
+
+        // CNF (Alternate function push-pull 10) TXD
+        GPIOA_CRH &= ~(3 << (4*(9-8)+2));     // Clear CNF2 (00)
+        GPIOA_CRH |= 2 << (4*(9-8)+2);        // CNF2 (10)
+
+        GPIOA_CRH &= ~(3 << (4*(8-8)+2));     // Clear CNF2 (00) GPIO Push-pull
+
+        // UART
+        // 1. Enable UART Clock
+        RCC_APB2ENR |= (1 << USART1EN);
+        // Set baud rate
+        USART_BRR &= ~(0xFFFF);
+        USART_BRR |= 0x08B;                    // BR = 57600 (8Mhz HSI)
+        // Enable Transmitter, Receiver and UART
+        USART_CR1 |= 1 << TE;
+        USART_CR1 |= 1 << RE;
+        USART_CR1 |= 1 << UE;
+    }
+
+
+    void main(void)
+    {
+        // Hardware Setup
+        prvSetupHardware();
+        
+        // Task parameters
+        TaskFunction_t pvTaskCode = vTask;          // Pointer to the function that implements the task
+        char *pcName = "Task1";                     // Descriptive name of the task
+        uint16_t usStackDepth = 128;                // Stack size 
+        void *pvParameters = (char *)"Task 1 is running\r\n";   // Parameters passed in to the task
+        UBaseType_t uxPriority = 1;                 // Task priority
+        TaskHandle_t *pxCreatedTask = NULL;         // Task handle for the created task
+        xTaskCreate(pvTaskCode, pcName, usStackDepth, pvParameters, uxPriority, pxCreatedTask);
+        
+        // Second task
+        pvParameters = (char *)"Task 2 is running\r\n";   // Parameters passed in to the task
+        uxPriority = 2;                             // Task priority 2 > 1
+        xTaskCreate(pvTaskCode, "Task2", usStackDepth, pvParameters, uxPriority, pxCreatedTask);
+        vTaskStartScheduler();
+        while(1); // Should never reach here
+    }
+
+</pre>
+    </div>
+</body>
+</html>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="../media.css" />
+    <title>String</title>
+</head>
+
+<body>
+    <div class="header">
+        <div>
+            <a href="../index.html">Rajesh Shah</a>
+        </div>
+        <div>
+            <a href="../aboutme.html">About Me</a>
+        </div>
+    </div>
+    <hr>
+    <!--<div id="project_container" style="margin-left: 2%; margin-top: 0.8%; align-items: center; display: flex; flex-direction: column">-->
+    <div class="project-container">
+        <div id="project-title">
+            <p>String</p>
+        </div>
+        <p>
+            C++ Implementation of String
+        </p>
+<pre>
+    #include &ltiostream&gt
+
+    using namespace std;
+    
+    class MyString{
+        private:
+            char *str;
+            int len;
+        public:
+            //Default Constructor
+            MyString ();
+            //Parameterized Constructor Declaration
+            MyString(char *);
+            MyString(const string &);
+            //Copy Constructor
+            MyString(const MyString &);     //Remember a pass by ref is needed here
+            //Overloaded = Operator
+            void operator = (const char *right);
+            //Overloaded = Operator for String
+            void operator = (string &);
+            //Overloaded [] Operator
+            char operator [] (int n) const;
+            //Overloaded += Operator
+            void operator += (const MyString &);
+            //Destructor
+            ~MyString(){
+                delete [] str;
+            }
+            //Accessor
+            int length() const {
+                return len;
+            }
+            //Friend function
+            //If you are overloading << operator as a member function,
+            //the first parameter is implicitly the calling object.
+            //You should either overload it as friend function or as a free function. 
+            //Overloaded << operator
+            friend ostream& operator << (ostream &,const MyString &);
+            friend MyString& operator + (const MyString &,const MyString &);
+    };
+
+    //Default Constructor
+    MyString::MyString(){
+        str = nullptr;
+        len = 0;
+    }
+
+    //Parameterized Constructor
+    //Character array
+    MyString::MyString(char *ptr){
+        int n = 0;
+        char *temp = ptr;
+        //Find length of  the char array
+        while(*temp != '\0'){
+            n++;
+            temp++;
+        }
+        len = n;
+        str = new char[len+1];
+        for(int i = 0 ; i < (len+1) ; i++){
+            str[i] = ptr[i];
+        }
+    }
+
+    //Parameterized Constructor
+    //String parameter
+    MyString::MyString(const string &right){
+        len = right.length();
+        str = new char[len+1];
+        for(int i = 0 ; i < (len+1) ; i++){
+            str[i] = right[i];
+        }
+        str[len] = '\0';
+    }
+
+    //Copy Constructor: Uses reference object
+    MyString::MyString(const MyString &str_copy){
+        len = 0;
+        str = new char[str_copy.len + 1];
+        while(len < str_copy.len){
+            str[len] = str_copy.str[len];
+            len++;
+        }
+        str[len] = '\0';
+    }
+
+    //Overloaded = operator
+    void MyString::operator = (const char *right){
+        len = 0;
+        while(right[len] != '\0'){
+            len++;
+        }
+        str = new char[len+1];
+        //strcpy(str,right);
+        for(int i = 0 ; i < (len+1) ; i++){
+            str[i] = right[i];
+        }
+    }
+
+    //Overloaded = operator
+    //For string
+    void MyString::operator = (string &right){
+        len = right.length();
+        str = new char[len+1];
+        //strcpy(str,right);
+        for(int i = 0 ; i < (len+1) ; i++){
+            str[i] = right[i];
+        }
+        str[len] = '\0';
+    }
+
+
+    //Const is a must here since this operator is not supposed to modify the member variable
+    //the const-ness of a function is part of its signature.
+    char MyString::operator [] (int n) const{
+        return str[n];
+    }
+
+    //Note: You can't call a non-const method with a const object
+    void MyString::operator += (const MyString &r){
+        int l = r.length();
+        for(int i = 0 ; i < l ; i++){
+            str[len+i] = r[i];
+        }
+        len = l+len;
+        str[len] = '\0';
+    }
+
+    //Using friend function
+    //Overloaded << operator
+    ostream& operator << (ostream &ost,const MyString &obj){
+        ost<< obj.str;
+        return ost;
+    }
+
+    //Overloaded + operator
+    MyString& operator + (const MyString &left,const MyString &right){
+        MyString newStr(left);
+        newStr += right;
+        cout<< newStr<< endl;
+        return newStr;
+    }
+
+    int main(){
+        MyString str3;
+        MyString str1 = (char*)"Hello!!!";              //Overload =
+        MyString str2 = str1;           //Copy Constructor
+        str1 = "World!!!";
+        str3 = str1;                    //Copy Assignment
+        cout<<"String length: "<< str2.length()<< endl;
+        cout<<"String: "<< str2<< endl;
+        cout<<"String length: "<< str3.length()<< endl;
+        cout<<"String: "<< str3<< endl;
+        MyString str = "Hello World!!!";      //Parameterized constructor
+        cout<<"String length: "<< str.length()<< endl;
+        cout<<"String: "<< str<< endl;
+        cout<<"Char at position 6 is "<< str[6]<< endl;
+        MyString str4,str5,str6;
+        str4 = "Good ";
+        str5 = "news!";
+        str4 += str5;
+        cout<< str4<< endl;
+        cout<< "New Length: "<< str4.length()<< endl;
+        str6 = str4 + str5;
+        cout<< str6<< endl;
+        return 0;
+    }
+</pre>
+    </div>
+</body>
+</html>

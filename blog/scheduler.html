@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="../media.css" />
+    <title>Round-robin Scheduler</title>
+</head>
+
+<body>
+    <div class="header">
+        <div>
+            <a href="../index.html">Rajesh Shah</a>
+        </div>
+        <div>
+            <a href="../aboutme.html">About Me</a>
+        </div>
+    </div>
+    <hr>
+    <!--<div id="project_container" style="margin-left: 2%; margin-top: 0.8%; align-items: center; display: flex; flex-direction: column">-->
+    <div class="project-container">
+        <div id="project-title">
+            <p>Round-robin Scheduler</p>
+        </div>
+<pre>
+    // Define systick registers
+    #define  SYST_CSR *(volatile unsigned int*)0xE000E010
+    #define  SYST_RVR *(volatile unsigned int*)0xE000E014
+    #define  SYST_CVR *(volatile unsigned int*)0xE000E018
+    #define  SYST_CALIB *(volatile unsigned int*)0xE000E01C
+    #define  SYSPRI3 *(volatile unsigned int*)0xE000E020
+
+    #define NUMTHREADS 3
+    #define STACKSIZE 100
+
+    extern void Start_OS(void);
+    struct tcb{
+        unsigned int *sp;           // Stack pointer to task's stack
+        struct tcb *next;           // Pointer to next task
+    };
+
+    struct tcb tcbs[NUMTHREADS];
+    struct tcb *RunPt;
+    volatile unsigned int counter = 0;
+    unsigned int Stacks[NUMTHREADS][STACKSIZE];
+    unsigned int Count0,Count1,Count2;
+
+    void systick_init(unsigned int period){
+        SYST_CSR = 0;       // Disable SysTick during setup
+        SYST_RVR = period - 1;
+        SYST_CVR = 0;
+        SYSPRI3 = (SYSPRI3&0X00FFFFFF)|0X40000000;  // Priority 2
+        SYST_CSR = 0x07;    // Enable core clock, interrupts
+    }
+
+    void Task0(void){
+        Count0 = 0;
+        while(1){
+            Count0++;
+        }
+    }
+
+    void Task1(void){
+        Count1 = 0;
+        while(1){
+            Count1++;
+        }
+    }
+
+    void Task2(void){
+        Count2 = 0;
+        while(1){
+            Count2++;
+        }
+    }
+
+    void SetInitialStack(int i){
+        tcbs[i].sp = &Stacks[i][STACKSIZE-16]; // thread stack pointer
+        Stacks[i][STACKSIZE-1] = 0x01000000; // Thumb bit
+        Stacks[i][STACKSIZE-3] = 0x14141414; // R14     LR
+        Stacks[i][STACKSIZE-4] = 0x12121212; // R12
+        Stacks[i][STACKSIZE-5] = 0x03030303; // R3
+        Stacks[i][STACKSIZE-6] = 0x02020202; // R2
+        Stacks[i][STACKSIZE-7] = 0x01010101; // R1
+        Stacks[i][STACKSIZE-8] = 0x00000000; // R0
+        Stacks[i][STACKSIZE-9] = 0x11111111; // R11
+        Stacks[i][STACKSIZE-10] = 0x10101010; // R10
+        Stacks[i][STACKSIZE-11] = 0x09090909; // R9
+        Stacks[i][STACKSIZE-12] = 0x08080808; // R8
+        Stacks[i][STACKSIZE-13] = 0x07070707; // R7
+        Stacks[i][STACKSIZE-14] = 0x06060606; // R6
+        Stacks[i][STACKSIZE-15] = 0x05050505; // R5
+        Stacks[i][STACKSIZE-16] = 0x04040404; // R4
+    }
+
+    void OS_AddThreads(void (*Task0)(void),void (*Task1)(void),void (*Task2)(void)){
+        tcbs[0].next = &tcbs[1];
+        tcbs[1].next = &tcbs[2];
+        tcbs[2].next = &tcbs[0];
+        SetInitialStack(0);
+        Stacks[0][STACKSIZE-2] = (unsigned int)Task0; // PC
+        SetInitialStack(1);
+        Stacks[1][STACKSIZE-2] = (unsigned int)Task1; // PC
+        SetInitialStack(2);
+        Stacks[2][STACKSIZE-2] = (unsigned int)Task2; // PC
+        RunPt = &tcbs[0];         // Thread 0 will run first 
+    }
+
+    void OS_Launch(){
+        systick_init(0x00FFFFFF);
+        Start_OS();                  // Start with the first thread ie pop the context for Task0 (IN ASM file)
+    }
+
+    int main(void){
+        //OS_Init();
+        // Initialize the threads ie store in the stack for each thread the initial context
+        OS_AddThreads(&Task0,&Task1,&Task2);
+        OS_Launch();        // Start the systick and OS
+        return 0;           // Never gets here
+    }
+
+</pre>
+    </div>
+</body>
+</html>

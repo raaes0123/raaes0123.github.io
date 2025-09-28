@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="../media.css" />
+    <title>Bit-banging I2C</title>
+</head>
+
+<body>
+    <div class="header">
+        <div>
+            <a href="../index.html">Rajesh Shah</a>
+        </div>
+        <div>
+            <a href="../aboutme.html">About Me</a>
+        </div>
+    </div>
+    <hr>
+    <!--<div id="project_container" style="margin-left: 2%; margin-top: 0.8%; align-items: center; display: flex; flex-direction: column">-->
+    <div class="project-container">
+        <div id="project-title">
+            <p>Bit-banging I2C</p>
+        </div>
+        <!--<p style="font-family:Georgia, 'Times New Roman', Times, serif ;font-size: large; margin: 1%;">February 7, 2025</p>-->
+        <p class="date-container">February 7, 2025</p>
+        <!--<div class="project_pic_container" style="width: 53%; display: flex; justify-content: center;">-->
+        <!-- <div class="project-pic-container">
+            <img src="../assets/mutex.png" alt="MUTEX IMG" />
+        </div> -->
+        <div class="project-details-container">
+            <p class="sub-topic">I2C Protocol</p>
+            <p>
+                I2C (Inter-Integrated Circuit) is a communication protocol used to connect low-speed devices like sensors, displays, and IO expanders to microcontrollers. It uses two wires: 
+                SDA(Data) and SCL(Clock). 
+                It allows multiple devices (Slaves) each with different addresses communicate with master. 
+            </p>
+            <p>The master (usually a microcontroller) initiates communication. 
+                The slave (like an IO Expander) responds to the master's requests. 
+                Each slave device has a unique 7-bit or 10-bit address. The master sends this address to select which device it wants to talk to.
+            </p>
+            <p class="sub-topic">I2C Communication Steps</p>
+            <p class="sub-topic">Start Condition</p>
+            <ul>
+                <li>Master pulls SDA low while SCL is high.</li>
+                <li>This signals the beginning of communication (slaves prepare to receive address if their address will be called).</li> 
+                <li>Without it, devices wouldn’t know when to begin interpreting data. </li>
+            </ul>
+            <pre>
+    Sending Start Condition 
+
+    void start(){ 
+        
+        // I2C Start: Set SCL high then set high-low transition for SDA 
+        
+        setPin(SDA); 
+        
+        delay(); 
+        
+        setPin(SCL); 
+        
+        delay(); 
+        
+        clrPin(SDA); 
+        
+        delay(); 
+        
+        clrPin(SCL); 
+        
+        delay(); 
+        
+    } 
+
+            </pre>
+            <p class="sub-topic">Send Address + R/W Bit </p>
+            <ul>
+                <li>Master sends the 7-bit address + 1-bit read/write flag. 0 for write and 1 for read</li>
+            </ul>
+            <pre>
+    Sending a byte 
+
+    void sendByte(uint8_t byte){ 
+        
+        for(uint8_t i = 0 ; i < 8 ; i++){ 
+        
+            (byte & 0x80) ? setPin(SDA) : clrPin(SDA); 
+            
+            byte <<= 1; 
+            
+            delay(); 
+            
+            setPin(SCL); 
+            
+            delay(); 
+            
+            delay(); 
+            
+            clrPin(SCL); 
+            
+            delay(); 
+        
+        } 
+        
+    } 
+
+            </pre>
+            <p class="sub-topic">Send Data</p>
+            <ul>
+                <li>Master sends one or more bytes of data. </li>
+            </ul>
+            <pre>
+    Sending data to particular register 
+
+    void i2c_send(uint8_t reg,uint8_t data){ 
+        
+        uint8_t ack; 
+        
+        start(); 
+        
+        // Send address 
+        
+        sendByte(I2C_ADDR << 1); // LSB is 1 for Write
+        
+        // Receive ACK 
+        
+        ack = recvACK(); 
+        
+        // Send register address 
+        
+        sendByte(reg); 
+        
+        // Receive ACK 
+        
+        ack = recvACK(); 
+        
+        // Send data 
+        
+        sendByte(data); 
+        
+        // Receive ACK 
+        
+        ack = recvACK(); 
+        
+        // Send stop 
+        
+        stop(); 
+        
+        // Delay before next transfer 
+        
+        delay(); 
+        
+    } 
+
+            </pre>
+            <p class="sub-topic">ACK/NACK</p>
+            <ul>
+                <li>After each byte, the slave (whose address the master sent first) sends an ACK (acknowledgment) by pulling SDA low in the 9th clock pulse (the master senses this).</li>
+                <li>If it doesn’t respond, it sends a NACK (no acknowledgment).</li>
+            </ul>
+            <pre>
+    Read ACK in the 9th clock pulse 
+
+    uint8_t recvACK(){ 
+        
+        setPin(SDA); 
+        
+        // Set SDA as input pin 
+        
+        GPIOG_MODER &= ~(3 << (2*SDA)); // Clear MODER2 
+        
+        // Wait some time 
+        
+        delay(); 
+        
+        setPin(SCL); 
+        
+        delay(); 
+        
+        // Read the ack to see if it is low 
+        
+        uint8_t ack = 0; 
+        
+        ack = ((GPIOG_IDR & (1 << SDA)) == 0); 
+        
+        delay(); 
+        
+        clrPin(SCL); 
+        
+        delay(); 
+        
+        // Set SDA as output pin again 
+        
+        GPIOG_MODER |= (1 << 2*SDA); // Set MODER2 = 01 
+        
+        return ack; 
+        
+    } 
+
+            </pre>
+
+            <p class="sub-topic">Stop Condition</p>
+            <ul>
+                <li>Master releases SDA while SCL is high.</li>
+                <li>This signals the end of communication. </li>
+            </ul>
+            <pre>
+    Sending Stop Condition 
+
+    void stop(){ 
+        
+        // Rising edge of SDA while SCL is stable at high state 
+        
+        clrPin(SDA); 
+        
+        delay(); 
+        
+        setPin(SCL); 
+        
+        delay(); 
+        
+        setPin(SDA); 
+        
+        delay(); 
+        
+        clrPin(SCL); 
+        
+        delay(); 
+        
+    }
+
+            </pre>
+    <footer>
+        <p>Copyright &#169; 2025 Rajesh Shah. All Rights Reserved.</p>
+    </footer>
+</body>
+
+</html>

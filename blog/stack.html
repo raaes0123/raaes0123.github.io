@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="../media.css" />
+    <title>Stack</title>
+</head>
+
+<body>
+    <div class="header">
+        <div>
+            <a href="../index.html">Rajesh Shah</a>
+        </div>
+        <div>
+            <a href="../aboutme.html">About Me</a>
+        </div>
+    </div>
+    <hr>
+    <!--<div id="project_container" style="margin-left: 2%; margin-top: 0.8%; align-items: center; display: flex; flex-direction: column">-->
+    <div class="project-container">
+        <div id="project-title">
+            <p>Stack</p>
+        </div>
+        <p>
+            C++ Implementation of Stack
+        </p>
+<pre>
+    #include &ltiostream&gt
+    
+    class StackNode{
+        public:
+            StackNode *next;
+            int val;
+            StackNode(){
+                next = nullptr;
+            }
+    };
+    class IntStack{
+        private:
+            StackNode *stack_top;    //Pointer to the stack array
+            int stack_size;
+        public:
+            IntStack(){
+                stack_top = nullptr;
+                stack_size = 0;
+            }
+            void push(int);
+            void pop();
+            int top();
+            bool isEmpty();
+            int size();
+    };
+
+    //************************************************* 
+    // Member function push pushes the argument onto * 
+    // the stack. * 
+    //************************************************* 
+    void IntStack::push(int num){
+        //Create a new node
+        StackNode *newNode;
+        newNode = new StackNode;
+        newNode->val = num;
+        if(stack_size == 0){
+            stack_top = newNode;
+            newNode->next = nullptr;
+        }
+        else{
+            newNode->next = stack_top;
+            stack_top = newNode;
+        }
+        stack_size++;
+    }
+
+    //************************************************* 
+    // Member function pop pops the element from the * 
+    // stack. * 
+    //************************************************* 
+    void IntStack::pop(){
+        //Prevent pop if empty
+        if(!isEmpty()){
+            cout<<"Popping"<<endl;
+            StackNode *tempNode = nullptr;
+            tempNode = stack_top->next;
+            delete stack_top;               //De-allocate memory
+            stack_top = tempNode; 
+            stack_size--;
+        }
+        else{
+            cout << "Stack is empty" << endl;
+        }
+    }
+    //************************************************* 
+    // Member function top returns the top of the 
+    // stack.
+    //************************************************* 
+    int IntStack::top(){
+        if(stack_size>0)
+            return stack_top->val;
+        else
+            return -1;
+    }
+
+    //************************************************* 
+    // Member function isEmpty returns true if empty * 
+    //************************************************* 
+    bool IntStack::isEmpty(){
+        return stack_size == 0;
+    }
+    //************************************************* 
+    // Member function size returns the size of the
+    // stack
+    //************************************************* 
+    int IntStack::size(){
+        return stack_size;
+    }
+
+    int main(){
+        IntStack st;
+        st.push(1);
+        cout<<"Stack size: "<< st.size() << " Top: "<< st.top()<< endl;
+        st.push(2);
+        cout<<"Stack size: "<< st.size()<<" Top: "<< st.top()<< endl;
+        st.push(3);
+        cout<<"Stack size: "<< st.size()<<" Top: "<< st.top()<< endl;
+        st.push(4);
+        cout<<"Stack size: "<< st.size()<<" Top: "<< st.top()<< endl;
+        st.pop();
+        cout<<"Stack size: "<< st.size()<<" Top: "<< st.top()<< endl;
+        st.pop();
+        cout<<"Stack size: "<< st.size()<<" Top: "<< st.top()<< endl;
+        st.pop();
+        cout<<"Stack size: "<< st.size()<<" Top: "<< st.top()<< endl;
+        st.pop();
+        cout<<"Stack size: "<< st.size()<<" Top: "<< st.top()<< endl;
+        return 0;
+    }
+</pre>
+    </div>
+</body>
+</html>
