@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="../media.css" />
+    <title>FreeRTOS Button Press Counter using Queue</title>
+</head>
+
+<body>
+    <div class="header">
+        <div>
+            <a href="../index.html">Rajesh Shah</a>
+        </div>
+        <div>
+            <a href="../aboutme.html">About Me</a>
+        </div>
+    </div>
+    <hr>
+    <!--<div id="project_container" style="margin-left: 2%; margin-top: 0.8%; align-items: center; display: flex; flex-direction: column">-->
+    <div class="project-container">
+        <div id="project-title">
+            <p>FreeRTOS Button Press Counter using Queue</p>
+        </div>
+
+        <p>
+            This project demonstrates a "FreeRTOS-based multitasking setup" on an "STM32F103" microcontroller using "bare-metal development".  
+            The system consists of a "sender task" that monitors a push button and a "receiver task" that counts button presses using a FreeRTOS "queue".
+        </p>
+
+        Features
+        <ul>
+            <li>Two FreeRTOS tasks:</li>
+            <li>"Sender Task:" Detects button presses and sends events to a queue.</li>
+            <li>"Receiver Task:" Periodically reads the queue and prints the total number of presses.</li>
+            <li>Bare-metal delay replaced with `vTaskDelay()` for RTOS-safe timing.</li>
+            <li>Custom linker script for precise memory layout.</li>
+            <li>UART/semihosted output using `vPrintString()`.</li>
+            <li>Compiles with `arm-none-eabi-gcc` and runs on STM32F103 board.</li>
+        </ul>
+
+        Task Overview
+        <p>
+            vSenderTask()
+            <ul>
+                <li>Monitors a button connected to GPIOC PC8.</li>
+                <li>On press, sends a byte (`ucVal`) to the queue.</li>
+                <li>Runs continuously for 10 seconds before sleeping briefly.</li>
+            </ul>
+        </p>
+<pre>
+    void vSenderTask(void *pvParameters)
+    {
+        BaseType_t xStatus;
+        int8_t ucVal = *((uint8_t*)pvParameters);
+        // Get current tick (time)
+        TickType_t startTick;
+        while (1)
+        {
+            startTick = xTaskGetTickCount();
+            while((xTaskGetTickCount() - startTick) < pdMS_TO_TICKS(10000)){
+                // If button is pressed send data to the queue
+                if(button_pressed()){
+                    TickType_t waitTick = xTaskGetTickCount();
+                    while((xTaskGetTickCount() - waitTick) < pdMS_TO_TICKS(10));
+                    if(button_pressed()){
+                        if(xQueueSendToBack(xQueue,&ucVal,0) == pdPASS)
+                            vPrintString("Sent button press to the queue.\r\n");
+                        else
+                            vPrintString("Couldn't add to the queue as it is full.\r\n");
+                    }
+                }
+                TickType_t waitTick = xTaskGetTickCount();
+                while((xTaskGetTickCount() - waitTick) < pdMS_TO_TICKS(100));
+            }
+            // Sleep for a second
+            vTaskDelay(pdMS_TO_TICKS(1000));
+        }
+    }
+
+</pre>
+
+<p>
+    vReceiverTask()
+    <ul>
+        <li>Has lesser priority than Sender task.</li>
+        <li>Runs only when the Sender task calls delay and sleeps.</li>
+        <li>Extracts the items from the queue and counts them.</li>
+        <li>Prints (using UART to terminal) the items from the queue ie number of button presses.</li>
+    </ul>
+</p>
+
+<pre>
+    void vReceiverTask(void *pvParameters)
+    {
+        BaseType_t xStatus;
+        char str[5];
+        int8_t ucCount;
+        int8_t ucVal;
+        while (1)
+        {
+            ucCount = 0;
+            while(1){
+                // Receive data from the queue
+                xStatus = xQueueReceive(xQueue,&ucVal,0);
+                if(xStatus == pdPASS){
+                    ucCount++;
+                }
+                else
+                    break;
+            }
+            u32ToStr(ucCount,str);
+            vPrintString("Total button presses: ");
+            vPrintString(str);
+            vPrintString("\r\n");
+            vTaskDelay(pdMS_TO_TICKS(1000));
+        }
+    }
+
+</pre>
+    </div>
+</body>
+</html>
