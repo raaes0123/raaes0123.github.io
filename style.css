@@ -5,6 +5,11 @@ body{
     margin-left: 25%;
     margin-right: 25%;
 }
+#rajesh{
+    font-size: 40px;
+    color:rgb(5, 118, 118);             /* Text color */
+    margin-left: 35%;
+}
 .header{
     display:flex;
     justify-content: space-between;
@@ -19,7 +24,7 @@ body{
 a{
     color:rgb(5, 118, 118);             /* Text color */
     text-decoration: none;   /* Removes underline */
-    font-weight: bold;       /* Makes it bold */
+    /*font-weight: bold;       /* Makes it bold */
 }
 a:hover{
     color:darkslategrey;             /* Text color */
