@@ -1,6 +1,10 @@
 @media screen and (max-width: 700px) {
   .header {
-    font-size: 23px;
+    font-size: 20px;
+  }
+  #rajesh {
+    font-size: 25px;
+    margin-left: 25%;
   }
   .project-container {
     font-size: 16px;
