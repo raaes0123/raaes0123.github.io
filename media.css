@@ -1,17 +1,26 @@
 @media screen and (max-width: 700px) {
-  .header {
-    font-size: 20px;
+  header{
+    flex-direction: column;
+  }
+  .nav{
+    font-size: 15px;
+    display:flex;
+    justify-content: space-between;
+    flex-direction: row;
+    width:100%;
   }
   #rajesh {
-    font-size: 25px;
+    font-size: 18px;
     margin-left: 30%;
+    margin-bottom: 5%;
   }
   .project-container {
-    font-size: 16px;
+    font-size: 12px;
   }
-  pre {
-    font-size: 16px;
+  pre,p{
+    font-size: 12px;
   }
+
   .topics h2 {
     font-size: 20px;
   }
@@ -31,7 +40,11 @@
   .project-container {
     width: 80vw; 
   }
-  .cards a {
+
+  #projects{
+    font-size: 15px;
+  }
+  .section a {
     font-size: 15px;
   }
   footer {
