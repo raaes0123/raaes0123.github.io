@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="../media.css" />
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <title>OTA Update</title>
+    <style>
+        /* h1, h3, h3, h4 {
+            color: #2c3e50;
+        } */
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h2 {
+            /* border-bottom: 2px solid #2980b9; */
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        h3 {
+            margin-top: 20px;
+            color: #34495e;
+        }
+        p, li {
+            font-size: 16px;
+        }
+        ul, ol {
+            margin-left: 20px;
+        }
+        code {
+            background-color: #ecf0f1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        pre {
+            background-color: #ecf0f1;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #bdc3c7;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: rgb(5, 118, 118);;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #ecf0f1;
+        }
+        .highlight {
+            background-color: #dff9fb;
+            padding: 10px;
+            border-left: 4px solid #2980b9;
+            margin: 10px 0;
+        }
+    </style>
+
+</head>
+
+<body>
+    <header>
+        <script src="header_script.js"></script>
+    </header>
+    <hr>
+    <!--<div id="project_container" style="margin-left: 2%; margin-top: 0.8%; align-items: center; display: flex; flex-direction: column">-->
+    <div class="project-container">
+        <h2>Secure OTA Firmware Update with ESP32</h2>
+        <h3>1. Project Overview</h3>
+        <p>This project demonstrates a secure Over-The-Air (OTA) firmware update mechanism for an ESP32-based embedded system with an SPI LCD touch display. Features include:</p>
+        <ul>
+            <li>WiFi connectivity for OTA updates</li>
+            <li>Secure HTTPS/TLS firmware downloads</li>
+            <li>Chunked firmware download and progress tracking</li>
+            <li>LVGL-based GUI to visualize OTA progress</li>
+            <li>SPI-based LCD and touch interface</li>
+            <li>Integration with FreeRTOS for task management</li>
+        </ul>
+        <p><strong>Target Platform:</strong> ESP32 series microcontrollers</p>
+        <p><strong>Programming Languages:</strong> C, C++</p>
+        <p><strong>Libraries and Frameworks:</strong> LVGL, FreeRTOS, ESP-IDF, Mongoose Embedded Networking Library</p>
+
+        <h3>2. System Architecture</h3>
+        <pre>
+    +------------------+       +------------------+
+    |                  |       |                  |
+    |  LVGL Display    | <---> |  LVGL Port Task  |
+    |  (ILI9341)       |       |  (GUI Updates)   |
+    |                  |       |                  |
+    +------------------+       +------------------+
+            ^                          ^
+            |                          |
+            | Display Updates          |
+            v                          v
+    +------------------+       +------------------+
+    | OTA Update Task  | <---> |  lvgl_queue      |
+    | (Secure HTTPS)   |       |  (Progress msgs) |
+    +------------------+       +------------------+
+            ^
+            |
+            v
+    +------------------+
+    | WiFi Connection  |
+    | (STA Mode)       |
+    +------------------+
+        </pre>
+
+        <h3>3. File Structure</h3>
+        <table>
+            <tr>
+                <th>File Name</th>
+                <th>Purpose</th>
+            </tr>
+            <tr>
+                <td>main.c</td>
+                <td>Application entry point. Initializes WiFi, LCD, LVGL, and FreeRTOS tasks.</td>
+            </tr>
+            <tr>
+                <td>lcd.c</td>
+                <td>LCD and touch driver initialization, LVGL integration, and display flush callback.</td>
+            </tr>
+            <tr>
+                <td>lcd.h</td>
+                <td>Header file for lcd.c functions and shared variables.</td>
+            </tr>
+            <tr>
+                <td>ota.c</td>
+                <td>Secure OTA implementation using Mongoose HTTP client and ESP-IDF OTA API.</td>
+            </tr>
+            <tr>
+                <td>wifi.c</td>
+                <td>WiFi initialization and connection logic.</td>
+            </tr>
+        </table>
+
+        <h3>4. Key Modules</h3>
+
+        <h3>4.1 WiFi Initialization (wifi.c)</h3>
+        <p>Connects ESP32 to the configured network using STA mode and blocks until successful.</p>
+        <pre><code>wifi_init(WIFI_SSID, WIFI_PASS);</code></pre>
+
+        <h3>4.2 LCD & LVGL Port (lcd.c)</h3>
+        <p><strong>Responsibilities:</strong></p>
+        <ul>
+            <li>Initialize SPI buses for LCD and touch controller</li>
+            <li>Configure ILI9341 LCD and XPT2046 touch controller</li>
+            <li>Setup LVGL display buffers and rendering callbacks</li>
+            <li>Handle touch input events</li>
+            <li>Periodically call <code>lv_timer_handler()</code> to update LVGL tasks</li>
+        </ul>
+        <p><strong>Important Functions:</strong></p>
+        <ul>
+            <li><code>lcd_config(lv_display_t *display)</code></li>
+            <li><code>lvgl_flush_cb()</code></li>
+            <li><code>lvgl_touch_cb()</code></li>
+            <li><code>example_lvgl_port_task()</code></li>
+        </ul>
+        <p><strong>Thread Safety:</strong> LVGL API calls are protected using <code>_lock_t lvgl_api_lock</code></p>
+
+        <h3>4.3 OTA Update (ota.c)</h3>
+        <p><strong>Responsibilities:</strong></p>
+        <ul>
+            <li>Establish HTTPS/TLS connection to OTA server</li>
+            <li>Retrieve firmware size using HTTP HEAD request</li>
+            <li>Download firmware in fixed-size chunks</li>
+            <li>Write firmware chunks using <code>esp_ota_write()</code></li>
+            <li>Update GUI progress via <code>lvgl_queue</code></li>
+            <li>Complete OTA using <code>esp_ota_end()</code> and reboot device</li>
+        </ul>
+        <p><strong>Important Functions:</strong></p>
+        <ul>
+            <li><code>ota_update_task()</code></li>
+            <li><code>ev_handler()</code></li>
+            <li><code>getRequest()</code></li>
+        </ul>
+
+        <h3>4.4 FreeRTOS Tasks</h3>
+        <table>
+            <tr>
+                <th>Task Name</th>
+                <th>Core</th>
+                <th>Stack Size</th>
+                <th>Priority</th>
+                <th>Purpose</th>
+            </tr>
+            <tr>
+                <td>example_lvgl_port_task</td>
+                <td>1</td>
+                <td>4096</td>
+                <td>2</td>
+                <td>Update LVGL GUI, handle touch, progress</td>
+            </tr>
+            <tr>
+                <td>ota_update_task</td>
+                <td>0</td>
+                <td>20KB</td>
+                <td>2</td>
+                <td>Perform OTA download and flash update</td>
+            </tr>
+        </table>
+
+        <h3>5. Thread Safety and Synchronization</h3>
+        <ul>
+            <li>LVGL API is <strong>not thread-safe</strong>; calls are protected using <code>_lock_t lvgl_api_lock</code></li>
+            <li>Progress updates are sent from OTA task to LVGL task via <code>lvgl_queue</code></li>
+        </ul>
+
+        <h3>6. Hardware Interface</h3>
+        <table>
+            <tr>
+                <th>Peripheral</th>
+                <th>Interface</th>
+                <th>ESP32 Pins</th>
+            </tr>
+            <tr>
+                <td>LCD ILI9341</td>
+                <td>SPI</td>
+                <td>SCLK: 18, MOSI: 23, MISO: 19</td>
+            </tr>
+            <tr>
+                <td>Touch XPT2046</td>
+                <td>SPI</td>
+                <td>CS: 5, CLK: 25, MISO: 39</td>
+            </tr>
+            <tr>
+                <td>Backlight Control</td>
+                <td>GPIO</td>
+                <td>GPIO 21</td>
+            </tr>
+        </table>
+
+        <h3>7. OTA Update Flow</h3>
+        <ol>
+            <li>Connect to WiFi</li>
+            <li>Initialize LVGL and display GUI</li>
+            <li>OTA task waits for notification</li>
+            <li>Establish HTTPS connection to OTA server</li>
+            <li>Send HEAD request for firmware size</li>
+            <li>Allocate OTA partition using <code>esp_ota_get_next_update_partition()</code></li>
+            <li>Download firmware in 1 KB chunks</li>
+            <li>Write firmware chunks using <code>esp_ota_write()</code></li>
+            <li>Update LVGL meter widget with download progress</li>
+            <li>Complete transfer, call <code>esp_ota_end()</code> and <code>esp_ota_set_boot_partition()</code></li>
+            <li>Reboot device to new firmware</li>
+        </ol>
+
+        <h3>8. Security Features</h3>
+        <ul>
+            <li>TLS Connection ensures encrypted OTA download</li>
+            <li>Root CA verification prevents MITM attacks</li>
+            <li>ESP32 OTA partitions provide safe rollback</li>
+            <li>Chunked transfer allows large firmware updates without blocking tasks</li>
+        </ul>
+
+        <h3>9. Notes & Recommendations</h3>
+        <ul>
+            <li>Ensure correct SPI pin configuration for LCD and touch</li>
+            <li>Keep LVGL buffer size at least 1/10 of the screen size</li>
+            <li>Use static memory allocation for LVGL buffers</li>
+            <li>Increase OTA task stack size for large firmware</li>
+            <li>Test OTA updates in controlled environment</li>
+        </ul>
+
+        <h3>10. References</h3>
+        <ul>
+            <li><a href="https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/ota.html" target="_blank">ESP-IDF OTA Example</a></li>
+            <li><a href="https://docs.lvgl.io" target="_blank">LVGL Documentation</a></li>
+            <li><a href="https://cesanta.com/mongoose" target="_blank">Mongoose Embedded Networking</a></li>
+        </ul>
+        <footer>
+            <p>Copyright &#169; 2025 Rajesh Shah. All Rights Reserved.</p>
+        </footer>
+    </div>
+</body>
+</html>
