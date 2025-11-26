@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="../media.css" />
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <title>Chip-8 Emulator</title>
+    <style>
+        h1, h2, h3 {
+            color: #333;
+        }
+        code {
+            background: #f2f2f2;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-size: 0.95em;
+        }
+        pre {
+            background: #f7f7f7;
+            padding: 12px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        img {
+            max-width: 100%;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <script src="header_script.js"></script>
+    </header>
+    <hr>
+    <!--<div id="project_container" style="margin-left: 2%; margin-top: 0.8%; align-items: center; display: flex; flex-direction: column">-->
+    <div class="project-container">
+        <h2>Chip-8 Emulator</h2>
+        <p>
+            CHIP-8 is an interpreted programming language developed on the 1802 microprocessor.
+            It was designed to make it easy to program small games on early systems.
+        </p>
+
+        <h3>Machine Description</h3>
+
+        <h4>Memory</h4>
+        <p>
+            CHIP-8 has 4096 bytes of memory. The first 512 bytes are reserved for the interpreter 
+            so programs typically start at address <code>0x200</code>.  
+            The upper area (<code>0xF00–0xFFF</code>) is reserved for display refresh, 
+            and <code>0xEA0–0xEFF</code> is used for stack and variables.
+        </p>
+
+        <h4>Registers</h4>
+        <p>
+            CHIP-8 has sixteen 8-bit data registers named V0–VF.  
+            VF serves as a flag register for carry, borrow, and pixel collision.  
+            The address register <code>I</code> is 12 bits wide.  
+            The Program Counter (<code>PC</code>) tracks the current instruction.
+        </p>
+
+        <h4>The Stack</h4>
+        <p>
+            Used for subroutine calls, originally allowing up to 12 nested calls.
+        </p>
+
+        <h4>Timers</h4>
+        <ul>
+            <li><b>Delay Timer</b>  counts down at 60 Hz; used for game timing.</li>
+            <li><b>Sound Timer</b>  beeps while non-zero; also counts down at 60 Hz.</li>
+        </ul>
+
+        <h4>Input</h4>
+        <p>
+            Input is done via a 16-key hexadecimal keypad (0-F).  
+            Three opcodes handle input:
+        </p>
+        <ul>
+            <li>Skip next instruction if key pressed</li>
+            <li>Skip if key not pressed</li>
+            <li>Wait for key press and store in register</li>
+        </ul>
+
+        <h4>Graphics and Sound</h4>
+        <p>
+            The display resolution is <b>64 x 32</b> pixels, monochrome.  
+            Sprites are 8 pixels wide and 1-15 pixels tall, drawn with XOR logic.  
+            VF is set on pixel collision.  
+            Sound is a simple beep controlled by the sound timer.
+        </p>
+
+        <h4>Opcode</h4>
+        <p>
+            CHIP-8 supports 35 opcodes, all two bytes long and stored big-endian.
+        </p>
+
+        <h3>Building</h3>
+        <p>
+            This project uses Raylib for graphics.  
+            Ensure Raylib is installed and update <code>RAYLIB_PATH</code> in the Makefile.
+        </p>
+
+        <pre>
+RAYLIB_PATH = ./../raylib/build/raylib
+        </pre>
+
+        <p>Then build using:</p>
+
+        <pre>
+make all
+        </pre>
+
+        <h3>Running</h3>
+        <p>
+            After building:
+        </p>
+
+        <pre>
+./emulator
+        </pre>
+
+        <h3>Demo</h3>
+
+        <img src="../assets/Missile.gif" alt="Missile Demo GIF" />
+        <img src="../assets/Pong.gif" alt="Pong Demo GIF" />
+
+        <h3>Github Repo</h3>
+        <ul>
+            <li><a href="https://github.com/raaes0123/Chip-8-Emulator">Github</a></li>
+        </ul>
+        <footer>
+            <p>Copyright &#169; 2025 Rajesh Shah. All Rights Reserved.</p>
+        </footer>
+    </div>
+</body>
+</html>
