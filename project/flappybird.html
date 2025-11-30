@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="../media.css" />
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <title>Flappy Bird</title>
+    <style>
+        h1, h2, h3 {
+            color: #333;
+        }
+        code {
+            background: #f2f2f2;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-size: 0.95em;
+        }
+        pre {
+            background: #f7f7f7;
+            padding: 12px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        img {
+            max-width: 100%;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <script src="header_script.js"></script>
+    </header>
+    <hr>
+    <!--<div id="project_container" style="margin-left: 2%; margin-top: 0.8%; align-items: center; display: flex; flex-direction: column">-->
+    <div class="project-container">
+        <h2>Flappy Bird on STM32F103 (FreeRTOS)</h2>
+        <p>
+            A minimalist, real-time, pixel-rendered Flappy Bird clone running on an STM32F103 MCU using FreeRTOS, double buffering, and a monochrome software framebuffer rendered to an ST7735S 132×132 SPI LCD.
+            This project focuses on bare-metal game design, task scheduling, software rendering, and embedded systems programming without relying on graphics libraries.
+        </p>
+
+        <h3>Features</h3>
+        <ul>
+            <li>FreeRTOS-based game loop</li>
+            <li>1-bit monochrome framebuffer, rendered to RGB565 LCD</li>
+            <li>Double buffering to eliminate tearing</li>
+            <li>Fully functional Flappy Bird gameplay</li>
+            <li>Scrolling pipes with adjustable speed & gap size</li>
+            <li>Input handling for bird flap</li>
+            <li>ST7735S SPI LCD driver (manual pixel-by-pixel push)</li>
+        </ul>
+
+        <h3>Hardware Requirements</h3>
+        <ul>
+            <li>STM32F103C8 / STM32F103RCT or similar</li>
+            <li>ST7735S 132×132 SPI TFT display</li>
+            <li>One push-button (bird flap)</li>
+            <li>SPI interface pins</li>
+            <li>Optional: SWD programmer/debugger</li>
+        </ul>
+
+        <h3>Software Requirements</h3>
+        <ul>
+            <li>FreeRTOS    
+            <li>ARM GCC / arm-none-eabi toolchain (or STM32CubeIDE)
+        </ul>
+            
+        <h3>Gameplay Overview</h3>
+        <ul>
+            <li>Tap button to make the bird flap upward</li>
+            <li>Pipes scroll from right to left</li>
+            <li>Passing a pipe increases score</li>
+            <li>Collision with pipe or ground → Game Over</li>
+            <li>Simple menu → Play → Game Over → Reset</li>
+        </ul>
+
+        <h3>Rendering Pipeline</h3>
+        <ol>
+            <li>Game Task updates:
+                <ul>
+                    <li>Bird position
+                    <li>Pipe movement
+                    <li>Collision detection
+                    <li>Game state (menu, playing, game over)
+                </ul>
+            
+            <li>Render Task draws into back_buffer
+            <li>Buffers are swapped, and front_buffer is sent to LCD by sendFrame()
+            <li>Each bit of the framebuffer is expanded to a 16-bit RGB565 pixel
+        </ol>
+
+        <h3>Build and Flash</h3>
+        <p>I used ST-LINK Programmer to flash the firmware</p>
+        <pre>
+    make all
+    make flash
+        </pre>
+
+        <h3>Demo</h3>
+
+        <img src="../assets/Menu.png" alt="Demo png" />
+        <img src="../assets/Gameplay.png" alt="Demo png" />
+
+        <h3>Github Repo</h3>
+        <ul>
+            <li><a href="https://github.com/raaes0123/FreeRTOS-Flappy-Bird-on-STM32F103">Github</a></li>
+        </ul>
+        <footer>
+            <p>Copyright &#169; 2025 Rajesh Shah. All Rights Reserved.</p>
+        </footer>
+    </div>
+</body>
+</html>
